@@ -1,0 +1,5 @@
+changelog:
+  - change:
+      file: 01-create-user.sql
+  - change:
+      file: 02-update-user-table.sql
