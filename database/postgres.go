@@ -129,7 +129,7 @@ func GetPgConnection(conf *Postgres) (PgConnection, error) {
 }
 
 func (p *PgConnection) CreateChangelogTableIfNotExists() error {
-	if _, err := p.DB.Exec("CREATE TABLE IF NOT EXISTS changelog(fileName varchar(256), created timestamp)"); err != nil {
+	if _, err := p.DB.Exec("CREATE TABLE IF NOT EXISTS changelog(id serial, fileName varchar(256), created timestamp default now())"); err != nil {
 		return err
 	}
 	return nil
@@ -157,6 +157,7 @@ func (p *PgConnection) GetAllFilesAlreadyImported() ([]model.File, error) {
 }
 
 func (p *PgConnection) AddForTransaction(fileName string, s string) {
+	p.files = append(p.files, fileName)
 	p.waiting += s
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/sql-migration/storage"
 	environment "github.com/sql-migration/tool"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -47,4 +48,5 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println("done")
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", environment.GetOr("PORT", "8080")), nil))
 }
