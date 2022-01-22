@@ -144,13 +144,12 @@ func (p *PgConnection) GetAllFilesAlreadyImported() ([]model.File, error) {
 
 	files := make([]model.File, 0, 10)
 	for r.Next() {
-		var fileName, md5 string
-		if err := r.Scan(&fileName, &md5); err != nil {
+		var fileName string
+		if err := r.Scan(&fileName); err != nil {
 			return nil, err
 		}
 		files = append(files, model.File{
 			Name: fileName,
-			Md5:  md5,
 		})
 	}
 	return files, nil
@@ -158,7 +157,7 @@ func (p *PgConnection) GetAllFilesAlreadyImported() ([]model.File, error) {
 
 func (p *PgConnection) AddForTransaction(fileName string, s string) {
 	p.files = append(p.files, fileName)
-	p.waiting += s
+	p.waiting += (s + ";")
 }
 
 func (p *PgConnection) ApplyChanges() error {
@@ -176,12 +175,14 @@ func (p *PgConnection) ApplyChanges() error {
 	}()
 	if _, err := tx.Exec(p.waiting); err != nil {
 		rollback = true
+		log.Println("cannot execute file", err)
 		return err
 	}
 	for _, f := range p.files {
 		f := f
-		if _, err := tx.Exec("INSERT into changelog (file) VALUES (?)", f); err != nil {
+		if _, err := tx.Exec("INSERT into changelog (fileName) VALUES ($1)", f); err != nil {
 			rollback = true
+			log.Println("cannot insert changelog", err)
 			return err
 		}
 	}
